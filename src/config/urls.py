@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework_nested import routers
 
+from accounts import urls as accounts_urls
+
 from characteristics.views import (
     CalculateCharacteristicViewSet,
     CalculatedCharacteristicHistoryModelViewSet,
@@ -256,6 +258,7 @@ urlpatterns = [
     path('api/v1/', include(org_router.urls)),
     path('api/v1/', include(prod_router.urls)),
     path('api/v1/', include(repo_router.urls)),
+    path('api/v1/', include(accounts_urls.urlpatterns))
 ]
 
 if settings.DEBUG:
