@@ -49,10 +49,45 @@ class SubCharacteristicEntityRelationshipTreeSerializer(
         )
 
     def get_measures(self, obj: SupportedCharacteristic):
-        return SupportedMeasureSerializer(
+        return MeasureEntityRelationshipTreeSerializer(
             obj.measures.all(),
             many=True,
         ).data
+
+
+class MeasureEntityRelationshipTreeSerializer(
+    serializers.ModelSerializer,
+):
+    metrics = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SupportedCharacteristic
+        fields = (
+            'id',
+            'name',
+            'key',
+            'description',
+            'metrics',
+        )
+
+    def get_metrics(self, obj: SupportedCharacteristic):
+        return MetricEntityRelationshipTreeSerializer(
+            obj.metrics.all(),
+            many=True,
+        ).data
+
+
+class MetricEntityRelationshipTreeSerializer(
+    serializers.ModelSerializer,
+):
+    class Meta:
+        model = SupportedCharacteristic
+        fields = (
+            'id',
+            'name',
+            'key',
+            'description',
+        )
 
 
 def pre_config_to_entity_tree(pre_config: PreConfig):

@@ -29,10 +29,7 @@ class SupportedEntitiesRelationshipTreeViewSet(
     queryset = SupportedCharacteristic.objects.all()
 
     def list(self, request, *args, **kwargs):
-        qs = SupportedCharacteristic.objects.all().prefetch_related(
-            'subcharacteristics',
-            'subcharacteristics__measures',
-        )
+        qs = SupportedCharacteristic.objects.all().prefetch_related()
 
         serializer = CharacteristicEntityRelationshipTreeSerializer(
             qs,
