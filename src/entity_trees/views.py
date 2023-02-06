@@ -17,6 +17,8 @@ from entity_trees.serializers import (
 from organizations.models import Product
 from pre_configs.models import PreConfig
 
+from staticfiles import default_pre_config, sonarqube_supported_metrics
+
 
 class SupportedEntitiesRelationshipTreeViewSet(
     mixins.ListModelMixin,
@@ -29,14 +31,44 @@ class SupportedEntitiesRelationshipTreeViewSet(
     queryset = SupportedCharacteristic.objects.all()
 
     def list(self, request, *args, **kwargs):
-        qs = SupportedCharacteristic.objects.all().prefetch_related()
 
-        serializer = CharacteristicEntityRelationshipTreeSerializer(
-            qs,
-            many=True,
-        )
+        supported_measures = {}
 
-        return Response(serializer.data)
+        for item in sonarqube_supported_metrics.SONARQUBE_SUPPORTED_MEASURES:
+            for k, v in item.items():
+                supported_measures[k] = item[k]['metrics']
+
+        tree = []
+        id = 0
+
+        for characteristic in default_pre_config.DEFAULT_PRE_CONFIG['characteristics']:
+            subcharacteristics_list = []
+
+            for subcharacteristic in characteristic['subcharacteristics']:
+                measure_list = []
+
+                for measure in subcharacteristic['measures']:
+                    metrics_list = []
+
+                    for metric in supported_measures[measure['key']]:
+                        metrics_list.append({'id': id, 'name': metric, 'description': None, 'key': metric})
+                        id += 1
+
+                    measure_list.append({'id': id, 'name': measure['key'], 'description': None,
+                                        'key': measure['key'], 'metrics': metrics_list})
+                    id += 1
+
+                subcharacteristics_list.append(
+                    {'id': id, 'name': subcharacteristic['key'],
+                        'description': None, 'key': subcharacteristic['key'],
+                        'measures': measure_list})
+                id += 1
+
+            tree.append({'id': id, 'name': characteristic['key'], 'description': None,
+                        'key': characteristic['key'], 'subcharacteristics': subcharacteristics_list})
+            id += 1
+
+        return Response(tree)
 
 
 class PreConfigEntitiesRelationshipTreeViewSet(
